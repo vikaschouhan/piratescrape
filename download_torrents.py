@@ -27,6 +27,14 @@ def chkfile(x):
 # enddef
 
 
+def gen_kill_script(script_name='/tmp/____kill_transmission.sh'):
+    with open(script_name, 'w') as f_out:
+        f_out.write('killall transmission-cli')
+    # endwith
+    # Give target script execute permissions
+    os.chmod(script_name, 0o744)
+# enddef
+
 if __name__ == '__main__':
     parser  = argparse.ArgumentParser()
     parser.add_argument('--in_file',      help='Input csv file', type=str, default='/tmp/pirate_results.csv')
@@ -73,6 +81,12 @@ if __name__ == '__main__':
         # endif
     # endif
 
+    # Write a temporary file for killing transmission-cli when it endsup downloading each torrent
+    # This is a hack which has no work-around as such. Later we will move to some other
+    # torrent client with more options
+    kill_script='/tmp/____kill_transmission.sh'
+    gen_kill_script(kill_script)
+
     # Start downloading
     for index, row in data_frame.iterrows():
         if cat and row['category'] != cat:
@@ -82,6 +96,6 @@ if __name__ == '__main__':
             continue
         # endif
         print('Downloading {}...'.format(row['title']))
-        subprocess.call(['transmission-cli', '-er', '-w', out_dir, row['magnet']])
+        subprocess.call(['transmission-cli', '-er', '-f', kill_script, '-w', out_dir, row['magnet']])
     # endfor
 # endif
