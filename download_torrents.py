@@ -6,8 +6,8 @@ import os
 import sys
 import argparse
 import pandas as pd
-import subprocess
-
+import libtorrent as lt
+import time
 
 def rp(x):
     return os.path.expanduser(x)
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_seeders',  help='Minimum seeders count for the torrent to consider it for downloading.', type=int, default=1)
     parser.add_argument('--category',     help='Category to be specified.', type=str, default=None)
     parser.add_argument('--sub_category', help='Subcategory to be specified.', type=str, default=None)
+    parser.add_argument('--timeout',      help='Timeout in seconds', type=int, default=None)
 
     args    = parser.parse_args()
 
@@ -50,6 +51,7 @@ if __name__ == '__main__':
     min_seeders  = args.__dict__['min_seeders']
     sub_cat      = args.__dict__['sub_category']
     cat          = args.__dict__['category']
+    timeout      = args.__dict__['timeout']
 
     if not in_file:
         print('--in_file is required !!')
@@ -81,11 +83,13 @@ if __name__ == '__main__':
         # endif
     # endif
 
-    # Write a temporary file for killing transmission-cli when it endsup downloading each torrent
-    # This is a hack which has no work-around as such. Later we will move to some other
-    # torrent client with more options
-    kill_script='/tmp/____kill_transmission.sh'
-    gen_kill_script(kill_script)
+    # Download params
+    params = {
+        'save_path': out_dir,
+        'storage_mode': lt.storage_mode_t(2),
+        'auto_managed': True,
+        'file_priorities': [0]*5
+    }
 
     # Start downloading
     for index, row in data_frame.iterrows():
@@ -95,7 +99,32 @@ if __name__ == '__main__':
         if sub_cat and row['subcat'] != sub_cat:
             continue
         # endif
+
         print('Downloading {}...'.format(row['title']))
-        subprocess.call(['transmission-cli', '-er', '-f', kill_script, '-w', out_dir, row['magnet']])
+        sess = lt.session()
+        handle = lt.add_magnet_uri(sess, row['magnet'], params)
+        print('downloading metadata...')
+        attempts = 0
+        continue_next = False
+        while not handle.has_metadata():
+            if timeout and attempts > timeout:
+                print('Timeout exceeded !!')
+                continue_next = True
+                break
+            # endif
+            time.sleep(1)
+            attempts += 1
+        # endwhile
+
+        if continue_next:
+            continue
+        # endif
+
+        print('got metadata, starting torrent download...')
+        while (handle.status().state != lt.torrent_status.seeding):
+            print('{}% done'.format(int(handle.status().progress*100)), end='\r')
+            time.sleep(2)
+        # endwhile
+        print('\n')
     # endfor
 # endif
