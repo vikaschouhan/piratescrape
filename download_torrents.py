@@ -27,14 +27,6 @@ def chkfile(x):
 # enddef
 
 
-def gen_kill_script(script_name='/tmp/____kill_transmission.sh'):
-    with open(script_name, 'w') as f_out:
-        f_out.write('killall transmission-cli')
-    # endwith
-    # Give target script execute permissions
-    os.chmod(script_name, 0o744)
-# enddef
-
 if __name__ == '__main__':
     parser  = argparse.ArgumentParser()
     parser.add_argument('--in_file',      help='Input csv file', type=str, default='/tmp/pirate_results.csv')
