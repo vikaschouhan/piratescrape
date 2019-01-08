@@ -13,6 +13,7 @@ import json
 
 EMPTY_LIST = []
 BASE_URL = None
+PROXY = None
 
 # Translation table for sorting filters
 sort_filters = {
@@ -36,6 +37,20 @@ def set_base_url(url):
     print('Setting piratebay url to {}'.format(url))
     global BASE_URL
     BASE_URL = url
+# enddef
+
+def set_proxy(proxy):
+    print('Setting proxy to {}'.format(proxy))
+    global PROXY
+    PROXY = proxy
+# enddef
+
+def request_get(url):
+    if PROXY == None:
+        return requests.get(url)
+    else:
+        return requests.get(url, proxies=PROXY)
+    # endif
 # enddef
 
 def jsonify(obj):
@@ -108,7 +123,7 @@ def parse_page(url, sort=None):
     '''
     This function parses the page and returns list of torrents
     '''
-    data = requests.get(url).text
+    data = request_get(url).text
     soup = BeautifulSoup(data, 'lxml')
     table_present = soup.find('table', {'id': 'searchResult'})
     if table_present is None:
