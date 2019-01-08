@@ -39,6 +39,11 @@ if __name__ == '__main__':
             break
         # endif
         torrent_list = torrent_list + json_t[0]
+
+        if len(torrent_list) == 0:
+            print('Nothing found !!')
+            sys.exit(-1)
+        # endif
     # endfor
 
     data_frame = pd.DataFrame()
