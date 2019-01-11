@@ -61,14 +61,23 @@ if __name__ == '__main__':
     sess = lt.session()
     handle = lt.add_magnet_uri(sess, torrent_link, params)
     handle.set_sequential_download(sequential)
-    print('downloading metadata...')
+    print('Downloading metadata.')
     while not handle.has_metadata():
         time.sleep(2)
     # endwhile
 
-    print('got metadata, starting torrent download...')
+    print('Got metadata, starting torrent download.')
+    print('Downloading {}'.format(handle.name()))
     while (handle.status().state != lt.torrent_status.seeding):
-        print('{}% done'.format(int(handle.status().progress*100)), end='\r')
+        status      = handle.status()
+        progress    = status.progress
+        up_speed    = status.upload_rate/(1024*1024)
+        down_speed  = status.download_rate/(1024*1024)
+        total_size  = status.total_wanted/(1024*1024)
+        num_peers   = status.num_peers
+        down_size   = progress * total_size
+        print('Progress: {:.2f}% (down: {:.2f}MBps, up: {:.2f}MBps, peers: {}, size: {:.2f}/{:.2f}MB)           '.format(progress * 100,
+            down_speed, up_speed, num_peers, down_size, total_size), end='\r')
         time.sleep(2)
     # endwhile
 # endif

@@ -92,10 +92,10 @@ if __name__ == '__main__':
             continue
         # endif
 
-        print('Downloading {}...'.format(row['title']))
+        print('Downloading {}.'.format(row['title']))
         sess = lt.session()
         handle = lt.add_magnet_uri(sess, row['magnet'], params)
-        print('downloading metadata...')
+        print('Downloading metadata.')
         attempts = 0
         continue_next = False
         while not handle.has_metadata():
@@ -112,9 +112,17 @@ if __name__ == '__main__':
             continue
         # endif
 
-        print('got metadata, starting torrent download...')
+        print('Got metadata, starting torrent download.')
         while (handle.status().state != lt.torrent_status.seeding):
-            print('{}% done'.format(int(handle.status().progress*100)), end='\r')
+            status      = handle.status()
+            progress    = status.progress
+            up_speed    = status.upload_rate/(1024*1024)
+            down_speed  = status.download_rate/(1024*1024)
+            total_size  = status.total_wanted/(1024*1024)
+            num_peers   = status.num_peers
+            down_size   = progress * total_size
+            print('Progress: {:.2f}% (down: {:.2f}MBps, up: {:.2f}MBps, peers: {}, size: {:.2f}/{:.2f}MB)           '.format(progress * 100,
+                down_speed, up_speed, num_peers, down_size, total_size), end='\r')
             time.sleep(2)
         # endwhile
         print('\n')
