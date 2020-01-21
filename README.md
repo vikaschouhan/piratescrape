@@ -1,6 +1,13 @@
 # thepiratebay API
 Based on https://github.com/appi147/thepiratebay for command line usage from linux shell.
 
+## Dependencies
+- python3-libtorrent
+- python3-lxml
+- python3-pandas
+- python3-requests
+- python3-bs4
+
 ## Scraper usage
 python3 pirate_search.py --search [search_string] --base_url [piratebay_url] --out_file [output_csv_file] --max_pages [maximum_no_of_pages] --use_onion
 * search_string - string to be searched enclosed in quotes.
